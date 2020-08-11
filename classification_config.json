@@ -1,0 +1,30 @@
+{
+    "model" : {
+        "input_size":           200,
+        "labels":               ["Cr","In","Pa","PS","RS","Sc"]
+    },
+
+    "train": {
+        "train_image_folder":   "data/NEU/train",
+        "train_cache_name":     "neu_train.pkl",
+        "train_times":          4,
+        "batch_size":           16,
+        "learning_rate":        1e-3,
+        "nb_epochs":            200,
+        "gpus":                 "0,1",
+        "tensorboard_dir":      "logs",
+        "saved_weights_name":   "neu_classification.h5",
+        "debug":                false
+    },
+
+    "valid": {
+        "valid_image_folder":   "data/NEU/valid",
+        "valid_cache_name":     "neu_val.pkl"
+    },
+	
+	"test":{
+        "test_flag":           true,
+        "test_image_folder":   "data/NEU/test",
+		"time": 1
+	}
+}
