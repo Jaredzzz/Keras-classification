@@ -13,11 +13,26 @@ import os
 from keras.callbacks import TensorBoard, ModelCheckpoint, BaseLogger
 import json
 from core.backbone import create_darknet53_model
+from core.MobileNet_v2 import create_mobilenet_v2_model
+from core.VGG import create_VGG_model
 from utils.dataset import load_data
 from keras.utils import multi_gpu_model
-
+from utils.draw_loss import LossHistory
+from core.loss_function import softmax_center_loss
 os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
 
+
+def create_model(model_name,num_classes):
+    if model_name == "darknet53":
+        model = create_darknet53_model(num_classes)
+    elif model_name == "mobilenet_v2":
+        model = create_mobilenet_v2_model(num_classes)
+    elif model_name == "vgg":
+        model = create_VGG_model(num_classes)
+    else:
+        raise ValueError("Assign correct backbone model: darknet53 or mobilenet_v2")
+
+    return model
 
 def train(args):
     config_path = args.conf
@@ -48,17 +63,17 @@ def train(args):
     multi_gpu = len(config['train']['gpus'].split(','))
     if multi_gpu > 1:
         with tf.device('/cpu:0'):
-            model = create_darknet53_model(num_classes=len(config["model"]["labels"]))
+            model = create_model(model_name=config["model"]["backbone"], num_classes=len(config["model"]["labels"]))
             model.summary()
     else:
-        model = create_darknet53_model(num_classes=len(config["model"]["labels"]))
+        model = create_model(model_name=config["model"]["backbone"], num_classes=len(config["model"]["labels"]))
         model.summary()
     if multi_gpu > 1:
         train_model = multi_gpu_model(model, gpus=multi_gpu)
     else:
         train_model = model
     optimizer = Adam(lr=config["train"]["learning_rate"], decay=config["train"]["learning_rate"]/config["train"]["nb_epochs"])
-    train_model.compile(loss="binary_crossentropy", optimizer=optimizer,metrics=["accuracy"])
+    train_model.compile(loss=softmax_center_loss, optimizer=optimizer,metrics=["accuracy"])
 
     print("[INFO] Start Training...")
     # 可视化
@@ -72,18 +87,20 @@ def train(args):
                              embeddings_layer_names=None,
                              embeddings_metadata=None)
     filepath = config["train"]["saved_weights_name"]
+    logs_loss = LossHistory()
     checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')  # 保存模型
     history = train_model.fit_generator(aug.flow(train_x, train_y, batch_size=config["train"]["batch_size"]),
                             validation_data=(valid_x, valid_y), steps_per_epoch=len(train_x) // config["train"]["batch_size"],
-                            epochs=config["train"]["nb_epochs"],callbacks=[tbCallBack,checkpoint], verbose=1)
+                            epochs=config["train"]["nb_epochs"],callbacks=[tbCallBack,checkpoint,logs_loss], verbose=1)
 
     print("[INFO] Saving Model...")
     # model.save(config["train"]["saved_weights_name"])
+    logs_loss.end_draw()
 
 
     # plot the training loss and accuracy
     plt.style.use("ggplot")
-    plt.figure(1,figsize=(6,4))
+    plt.figure(3,figsize=(6,4))
     # 绘制训练 & 验证的准确率值
     plt.plot(history.history['acc'],label="train accuracy")
     plt.plot(history.history['val_acc'],label="valid accuracy")
@@ -91,20 +108,22 @@ def train(args):
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
     plt.legend(loc='best')
-    plt.savefig("Accuracy.png")
-    plt.show()
+    plt.savefig("Accuracy_%s_epoch=%s.png" %
+                (config["model"]["backbone"], config["train"]["nb_epochs"]))
+    # plt.show()
 
 
     # 绘制训练 & 验证的损失值
-    plt.figure(2, figsize=(6, 4))
+    plt.figure(4, figsize=(6, 4))
     plt.plot(history.history['loss'],label="train loss")
     plt.plot(history.history['val_loss'],label="valid loss")
     plt.title('Model loss')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(loc='best')
-    plt.show()
-    plt.savefig("Loss.png")
+    plt.savefig("Loss_%s_epoch=%s.png" %
+                (config["model"]["backbone"], config["train"]["nb_epochs"]))
+    # plt.show()
     print("[INFO] Completed...")
 
 

@@ -1,10 +1,31 @@
-from keras.layers import Dense,Conv2D, Input, BatchNormalization, LeakyReLU, ZeroPadding2D, GlobalAveragePooling2D
+from keras.layers import Activation, Dense, Conv2D, Input, BatchNormalization, LeakyReLU, ZeroPadding2D, GlobalAveragePooling2D
 from keras.layers.merge import add
 from keras.models import Model
 from keras.initializers import glorot_uniform
 import os
+from keras.utils.generic_utils import get_custom_objects
+from keras import backend as K
 
 os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
+
+
+
+def swish(x):
+    '''
+    x：每个值
+    '''
+    return (K.sigmoid(x) * x)
+
+
+def mish(x):
+    '''
+    x：每个值
+    '''
+    y = K.tanh(K.softplus(x)) * x
+    return y
+
+get_custom_objects().update({'swish': Activation(swish)})
+get_custom_objects().update({'mish': Activation(mish)})
 
 '''
 darknet53 model 
