@@ -8,7 +8,7 @@ from keras.initializers import glorot_uniform
 import os
 
 
-os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] ='3'
 os.environ['CUDA_VISIBLE_DEVICES'] ="0"
 
 
@@ -93,7 +93,7 @@ def create_mobilenet_v2_model(num_classes, alpha=1.0):
     x = _conv_block(x, last_filters, (1, 1), strides=(1, 1))
     x = GlobalAveragePooling2D()(x)
     output = Dense(num_classes,
-                   # activation='softmax',
+                   activation='softmax',
                    use_bias=True,
                    kernel_initializer=glorot_uniform(seed=0))(x)
 
