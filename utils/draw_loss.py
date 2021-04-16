@@ -38,12 +38,10 @@ class LossHistory(keras.callbacks.Callback):
         self.draw_p(5, [self.train_acc['epoch'], self.val_acc['epoch']], ['accuracy', 'val_accuracy'], 'Epoch')
         self.draw_p(6, [self.train_loss['epoch'], self.val_loss['epoch']], ['loss', 'val_loss'], 'Epoch')
 
-
-
-# 绘图，这里把每一种曲线都单独绘图，若想把各种曲线绘制在一张图上的话可修改此方法
-    def draw_p(self,figure, lists, label, type):
+    # 绘图，这里把每一种曲线都单独绘图，若想把各种曲线绘制在一张图上的话可修改此方法
+    def draw_p(self, figure, lists, label, type):
         plt.style.use("ggplot")
-        plt.figure(figure,figsize=(6,4))
+        plt.figure(figure, figsize=(6, 4))
         for i in range(len(lists)):
             plt.plot(range(len(lists[i])), lists[i], label=label[i])
         plt.title('Model %s' % label[0])

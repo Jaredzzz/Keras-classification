@@ -6,8 +6,7 @@ import os
 from keras.utils.generic_utils import get_custom_objects
 from keras import backend as K
 
-os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def swish(x):
@@ -23,6 +22,7 @@ def mish(x):
     '''
     y = K.tanh(K.softplus(x)) * x
     return y
+
 
 get_custom_objects().update({'swish': Activation(swish)})
 get_custom_objects().update({'mish': Activation(mish)})

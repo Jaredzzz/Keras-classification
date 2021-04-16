@@ -3,6 +3,7 @@ from keras.models import Model
 from keras import backend as K
 import tensorflow as tf
 
+
 def softmax_loss(labels, features):
     """
     计算softmax-loss
@@ -56,7 +57,7 @@ def center_loss(labels, features, alpha, num_classes):
     return c_loss
 
 
-def softmax_center_loss(y_true,y_pred,alpha=0.6,num_classes=6,Lambda=0.5):
+def softmax_center_loss(y_true, y_pred, alpha=0.6, num_classes=6, Lambda=0.5):
     labels = K.cast(y_true, dtype=tf.float32)
     # 计算softmax-loss
     sf_loss = softmax_loss(labels, y_pred)
